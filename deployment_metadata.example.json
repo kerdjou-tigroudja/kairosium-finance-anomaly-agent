@@ -1,0 +1,8 @@
+{
+  "remote_agent_engine_id": "projects/<PROJECT_NUMBER>/locations/<REGION>/reasoningEngines/<REASONING_ENGINE_ID>",
+  "display_name": "kairosium-finance-anomaly-agent",
+  "region": "europe-west1",
+  "deploy_method": "adk_cli",
+  "agent_folder": "repository_root",
+  "demo_gcs_csv": "gs://<YOUR_GCP_PROJECT_ID>-kairosium-agent-csv/demo/golden_set.csv"
+}

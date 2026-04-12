@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Environnement
+.env
+*.env.local
+
+# GCP credentials — ne jamais committer
+*.json.key
+service_account*.json
+application_default_credentials.json
+
+# Tests
+results.xml
+.pytest_cache/
+htmlcov/
+.coverage
+
+# IDE
+.vscode/
+.idea/
+*.DS_Store
+
+# ADK
+.adk/
+
+# Déploiement — métadonnées réelles (copier depuis deployment_metadata.example.json)
+deployment_metadata.json

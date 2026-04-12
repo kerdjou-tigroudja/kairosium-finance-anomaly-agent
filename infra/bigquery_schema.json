@@ -1,0 +1,41 @@
+{
+  "description": "Schéma cible pour la table matérialisée cost_tracking (infra/cost_tracking.sql). La table agent_events est gérée automatiquement par BigQueryAgentAnalyticsPlugin.",
+  "cost_tracking": [
+    {
+      "name": "session_id",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Session ADK (corrélation avec agent_events)."
+    },
+    {
+      "name": "agent_name",
+      "type": "STRING",
+      "mode": "NULLABLE",
+      "description": "Nom agent ADK (colonne agent dans agent_events)."
+    },
+    {
+      "name": "run_date",
+      "type": "DATE",
+      "mode": "NULLABLE",
+      "description": "Date UTC agrégée (DATE(timestamp))."
+    },
+    {
+      "name": "total_tokens",
+      "type": "INTEGER",
+      "mode": "NULLABLE",
+      "description": "Somme des usage_total_tokens (événements LLM_RESPONSE, 30 j)."
+    },
+    {
+      "name": "estimated_cost_usd",
+      "type": "FLOAT",
+      "mode": "NULLABLE",
+      "description": "Estimation $0.50 / 1M tokens total (approximation documentée dans le SQL)."
+    },
+    {
+      "name": "llm_calls",
+      "type": "INTEGER",
+      "mode": "NULLABLE",
+      "description": "Nombre d’appels LLM (lignes LLM_RESPONSE agrégées)."
+    }
+  ]
+}

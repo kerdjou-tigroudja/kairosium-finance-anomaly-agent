@@ -1,0 +1,87 @@
+# Kairosium — politiques d'alerte Cloud Monitoring (format API REST v3, camelCase).
+# Référence : DESIGN_SPEC_v2_3.md §6–7 (métriques custom + latences p95).
+#
+# Canal Slack (créer d'abord) — méthode retenue : console GCP
+#   Console → Monitoring → Alerting → Notification channels → Webhooks → Add
+#   → coller l'URL Incoming Webhook Slack → Save → copier l'ID du canal affiché.
+#   Alternative : gcloud alpha monitoring channels create --type=webhook_tokenauth ...
+#
+# Ordre d'exécution (depuis la racine du projet, avec uv) :
+#   export MONITORING_SLACK_CHANNEL="projects/YOUR_GCP_PROJECT_ID/notificationChannels/<ID>"
+#   uv pip install pyyaml   # inutile si déjà dans l'environnement (voir pyproject.toml)
+#   uv run python scripts/apply_monitoring_policies_from_yaml.py infra/monitoring_alert.yaml
+#
+# Métriques latence : périodiquement
+#   uv run python scripts/push_latency_p95_to_monitoring.py
+# Voir DEPLOY_AGENT_ENGINE.md.
+
+notificationChannelPlaceholder: "projects/PROJECT_ID/notificationChannels/CHANNEL_ID"
+
+alertPolicies:
+  # --- Politique 1 : anomalie métier (chaque point anomaly_alert) ---
+  - displayName: "Kairosium — 1. Anomalie détectée (anomaly_alert)"
+    combiner: OR
+    enabled: true
+    documentation:
+      mimeType: text/markdown
+      content: |
+        Une transaction ALERTE a émis la métrique custom `agent/anomaly_alert`
+        (outil `trigger_alert`). Vérifier `audit_reports` et le canal #anomaly-alerts.
+    conditions:
+      - displayName: "Valeur anomaly_alert > 0"
+        conditionThreshold:
+          filter: |
+            resource.type = "global"
+            AND metric.type = "custom.googleapis.com/agent/anomaly_alert"
+          comparison: COMPARISON_GT
+          thresholdValue: 0
+          duration: 60s
+          aggregations:
+            - alignmentPeriod: 60s
+              perSeriesAligner: ALIGN_MAX
+
+  # --- Politique 2 : latence p95 par tool call (série BQ → custom metric) ---
+  - displayName: "Kairosium — 2. Latence p95 tool call > 3000 ms"
+    combiner: OR
+    enabled: true
+    documentation:
+      mimeType: text/markdown
+      content: |
+        Alerte sur `custom.googleapis.com/agent/latency_p95` (p95 des `TOOL_COMPLETED`
+        sur la fenêtre BQ, une série par label `agent`). Alimentée par
+        `scripts/push_latency_p95_to_monitoring.py` ou équivalent.
+    conditions:
+      - displayName: "latency_p95 > 3000"
+        conditionThreshold:
+          filter: |
+            resource.type = "global"
+            AND metric.type = "custom.googleapis.com/agent/latency_p95"
+          comparison: COMPARISON_GT
+          thresholdValue: 3000
+          duration: 300s
+          aggregations:
+            - alignmentPeriod: 300s
+              perSeriesAligner: ALIGN_MAX
+
+  # --- Politique 3 : latence p95 workflow (agrégat par session) ---
+  - displayName: "Kairosium — 3. Latence p95 workflow > 8000 ms"
+    combiner: OR
+    enabled: true
+    documentation:
+      mimeType: text/markdown
+      content: |
+        Alerte sur `custom.googleapis.com/agent/workflow_latency_p95` (p95 de la somme
+        des latences par `session_id` sur `agent_events`). Alimentée par le même script
+        que la politique 2.
+    conditions:
+      - displayName: "workflow_latency_p95 > 8000"
+        conditionThreshold:
+          filter: |
+            resource.type = "global"
+            AND metric.type = "custom.googleapis.com/agent/workflow_latency_p95"
+          comparison: COMPARISON_GT
+          thresholdValue: 8000
+          duration: 300s
+          aggregations:
+            - alignmentPeriod: 300s
+              perSeriesAligner: ALIGN_MAX

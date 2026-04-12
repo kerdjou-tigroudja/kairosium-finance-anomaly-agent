@@ -1,0 +1,26 @@
+{
+  "model_id": "gemini-2.5-flash",
+  "model_id_overrides": {
+    "ingestion_agent": null,
+    "scoring_agent": null
+  },
+  "dataset_id": "agent_prod",
+  "baseline_multiplier": 3.0,
+  "suspect_hours_start": 2,
+  "suspect_hours_end": 4,
+  "fractionnement_window_hours": 48,
+  "validation_threshold": 500.0,
+  "fractionnement_min_count": 3,
+  "supplier_registry": [
+    "SUP_001", "SUP_002", "SUP_003", "SUP_004", "SUP_005",
+    "SUP_006", "SUP_007", "SUP_008", "SUP_009", "SUP_010",
+    "SUP_011", "SUP_012", "SUP_013", "SUP_014", "SUP_015",
+    "SUP_016", "SUP_017", "SUP_018", "SUP_019", "SUP_020",
+    "SUP_021", "SUP_022", "SUP_023", "SUP_024", "SUP_025",
+    "SUP_026", "SUP_027", "SUP_028", "SUP_029", "SUP_030",
+    "SUP_031", "SUP_032", "SUP_033", "SUP_034", "SUP_035",
+    "SUP_036", "SUP_037", "SUP_038", "SUP_039", "SUP_040",
+    "SUP_041", "SUP_042", "SUP_043", "SUP_044", "SUP_045",
+    "SUP_046", "SUP_047", "SUP_048", "SUP_049", "SUP_050"
+  ]
+}
