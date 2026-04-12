@@ -76,10 +76,10 @@ Notifications **Slack** via **webhook HTTP** directement dans l’outil **`trigg
 
 | ADR | Sujet | Fichier |
 |:--|:--|:--|
-| **ADR-005** | CI Cloud Build (différable / trigger) | [`../docs/adr/ADR-005.md`](../docs/adr/ADR-005.md) |
-| **ADR-006** | Firestore exclu pour ce pilote (config fichier) | [`../docs/adr/ADR-006-firestore-exclusion.md`](../docs/adr/ADR-006-firestore-exclusion.md) |
-| **ADR-007** | Agent Engine (`europe-west1`) vs Cloud Run Grille T2 | [`../docs/adr/ADR-007-agent-engine-vs-cloud-run.md`](../docs/adr/ADR-007-agent-engine-vs-cloud-run.md) |
-| **ADR-008** | MCP exclu (tools GCP natifs uniquement) | [`../docs/adr/ADR-008-mcp-exclu.md`](../docs/adr/ADR-008-mcp-exclu.md) |
+| **ADR-005** | CI Cloud Build (différable / trigger) | [`docs/adr/ADR-005.md`](docs/adr/ADR-005.md) |
+| **ADR-006** | Firestore exclu pour ce pilote (config fichier) | [`docs/adr/ADR-006-firestore-exclusion.md`](docs/adr/ADR-006-firestore-exclusion.md) |
+| **ADR-007** | Agent Engine (`europe-west1`) vs Cloud Run Grille T2 | [`docs/adr/ADR-007-agent-engine-vs-cloud-run.md`](docs/adr/ADR-007-agent-engine-vs-cloud-run.md) |
+| **ADR-008** | MCP exclu (tools GCP natifs uniquement) | [`docs/adr/ADR-008-mcp-exclu.md`](docs/adr/ADR-008-mcp-exclu.md) |
 
 ## CI (Cloud Build)
 
