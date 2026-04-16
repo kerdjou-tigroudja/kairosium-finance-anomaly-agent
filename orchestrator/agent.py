@@ -24,10 +24,11 @@ root_agent = Agent(
 
 Workflow obligatoire à suivre dans cet ordre :
 
-1. **Ingestion** : Délègue à ingestion_agent en lui fournissant le gcs_path du CSV.
+1. **Ingestion** : Délègue à ingestion_agent en appelant **transfer_to_agent** avec `agent_name='ingestion_agent'`
+   (et en lui fournissant le `gcs_path` du CSV dans ton message).
    Attends la confirmation du nombre de transactions ingérées.
 
-2. **Scoring** : Délègue à scoring_agent.
+2. **Scoring** : Délègue à scoring_agent en appelant **transfer_to_agent** avec `agent_name='scoring_agent'`.
    Attends les compteurs NORMAL/SUSPECT/ALERTE.
 
 3. **Rapport** : Appelle generate_audit_report (sans paramètres — les données sont en state).
@@ -46,6 +47,10 @@ Workflow obligatoire à suivre dans cet ordre :
    - total transactions
    - compteurs NORMAL / SUSPECT / ALERTE
    - liste des tx_id ALERTE (doit correspondre à alert_transactions)
+
+Contraintes :
+- Ne tente jamais d'appeler `ingest_transactions` directement : cette tool n'est disponible que dans ingestion_agent.
+- Pour déléguer, utilise uniquement `transfer_to_agent`.
 
 Ne bloque aucun paiement automatiquement — les alertes requièrent une intervention humaine.
 """,
