@@ -5,6 +5,7 @@ from google.adk.models.google_llm import Gemini
 
 from config.loader import load_config
 from ingestion_agent.agent import ingestion_agent
+from orchestrator.inline_csv import persist_playground_csv_before_model
 from orchestrator.tools.alert import trigger_alert
 from orchestrator.tools.report import generate_audit_report
 from scoring_agent.agent import scoring_agent
@@ -15,7 +16,10 @@ _config = load_config()
 root_agent = Agent(
     name="finance_anomaly_orchestrator",
     model=Gemini(model=_config.get_model_id()),
-    before_model_callback=vertex_billing_before_model,
+    before_model_callback=[
+        vertex_billing_before_model,
+        persist_playground_csv_before_model,
+    ],
     description=(
         "Orchestre la détection d'anomalies financières NovaPay. "
         "Pipeline : ingestion CSV → scoring déterministe → rapport d'audit → alertes Cloud Monitoring."
@@ -24,8 +28,11 @@ root_agent = Agent(
 
 Workflow obligatoire à suivre dans cet ordre :
 
-1. **Ingestion** : Délègue à ingestion_agent en appelant **transfer_to_agent** avec `agent_name='ingestion_agent'`
-   (et en lui fournissant le `gcs_path` du CSV dans ton message).
+1. **Ingestion** : Délègue à ingestion_agent en appelant **transfer_to_agent** avec `agent_name='ingestion_agent'`.
+   Chemin CSV playground (injecté depuis l'état, vide si absent) : `{playground_csv_path?}`
+   - Si ce chemin est **non vide**, c'est un fichier local matérialisé depuis un CSV joint dans le Dev UI :
+     inclue ce chemin absolu dans ton message de délégation ; n'exige pas de `gs://`.
+   - Sinon, fournis le `gcs_path` ou chemin local indiqué explicitement par l'utilisateur dans son message.
    Attends la confirmation du nombre de transactions ingérées.
 
 2. **Scoring** : Délègue à scoring_agent en appelant **transfer_to_agent** avec `agent_name='scoring_agent'`.
