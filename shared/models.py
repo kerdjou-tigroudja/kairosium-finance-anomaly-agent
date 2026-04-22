@@ -79,7 +79,7 @@ class AgentConfig(BaseModel):
 
     model_id: str = Field(
         ...,
-        description="Identifiant modèle Model Garden / Vertex — obligatoire (Firestore ou agent_config.json).",
+        description="Identifiant modèle Vertex AI Gemini API — obligatoire (Firestore ou agent_config.json).",
     )
     model_id_overrides: dict = Field(
         default_factory=lambda: {"ingestion_agent": None, "scoring_agent": None}

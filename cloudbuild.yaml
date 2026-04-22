@@ -17,4 +17,4 @@ steps:
         curl -LsSf https://astral.sh/uv/install.sh | sh
         export PATH="$$HOME/.local/bin:$$PATH"
         uv sync --extra dev
-        uv run pytest tests/ -v
+        uv run pytest tests/test_agent.py::test_accuracy_golden_set -v

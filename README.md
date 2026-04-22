@@ -21,7 +21,7 @@ Données issues du golden set et des runs instrumentés (dev Étape 4bis vs **pr
 
 ## Modèle LLM
 
-- **Production :** `gemini-2.5-flash` (Vertex AI Model Garden), configuré via `config/agent_config.json` et surcharge possible par la variable d’environnement `MODEL_ID`.
+- **Production :** `gemini-2.5-flash` (Vertex AI Gemini API), configuré via `config/agent_config.json` et surcharge possible par la variable d’environnement `MODEL_ID`.
 - **Migration :** passage **`gemini-2.0-flash` → `gemini-2.5-flash`** aligné sur l’arrêt annoncé de **Gemini 2.0 Flash** (**1er juin 2026**). Ne pas réintroduire `gemini-2.0-flash` dans la config de production après cette date.
 - **Authentification :** **Vertex AI avec ADC** (`gcloud auth application-default login`, `GOOGLE_GENAI_USE_VERTEXAI=true`) — **pas** de clé API Google AI Studio en mode production.
 
@@ -83,4 +83,4 @@ Notifications **Slack** via **webhook HTTP** directement dans l’outil **`trigg
 
 ## CI (Cloud Build)
 
-Fichier [`cloudbuild.yaml`](cloudbuild.yaml) : `uv sync` + `pytest`. Décision et périmètre : **ADR-005**. Pour bloquer les merges, brancher un **trigger** Cloud Build sur la branche concernée.
+Fichier [`cloudbuild.yaml`](cloudbuild.yaml) : exécution du golden set (`pytest tests/test_agent.py::test_accuracy_golden_set`). Configuration CI définie (**ADR-005**). Pour activer la CI bloquante sur le projet GCP, utiliser la commande `gcloud builds triggers create` (voir livrables).
