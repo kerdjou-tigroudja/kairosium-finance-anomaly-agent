@@ -1,4 +1,4 @@
-# ADR-006 — Exclusion Firestore pour le stockage de `model_id` (pilote)
+# ADR-006 — Exclusion de Firestore pour la configuration (dont `model_id`)
 
 ## Statut
 
@@ -6,22 +6,22 @@ Accepté
 
 ## Contexte
 
-Firestore était prévu dans la Constitution (section 7.2) pour stocker `model_id` et permettre une configuration dynamique des agents.
+Stocker `model_id` et la configuration des agents dans **Firestore** serait un choix valable pour un réglage à chaud, multi-tenant, ou des mises à jour fréquentes.
 
 ## Décision
 
-Pour ce pilote, **Firestore est exclu** : la configuration effective repose sur le fallback **`kairosium-finance-anomaly-agent/config/agent_config.json`** (comportement déjà prévu dans le chargeur de configuration).
+**Firestore n’est pas utilisé** pour cette configuration : la source de vérité est le fichier versionné **`kairosium-finance-anomaly-agent/config/agent_config.json`** (comportement pris en charge par le chargeur de configuration de l’application).
 
-## Raison
+## Raisons
 
-- Périmètre pilote **mono-environnement** : pas de besoin immédiat de réglage runtime multi-cibles.
-- **Firestore représente un surcoût opérationnel** (IAM, règles, monitoring, cycles de déploiement des documents) **non justifié** à ce stade par le volume ou la fréquence de changement de `model_id`.
+- **Périmètre pilote mono-environnement** : pas de besoin immédiat de cibles runtime multiples.
+- **Firestore ajoute** des contraintes **IAM**, du **réseau** (règles, exposition), un **cycle opérationnel** (monitoring, déploiement des données) **disproportionnées** quand le **`model_id`** et les paramètres de config **changent rarement** par rapport au coût d’un simple commit / release.
+- Un **JSON versionné** est **plus simple à auditer**, **reproductible** entre environnements et **aligné** avec l’exigence de reproductibilité d’un agent déployé comme artefact.
 
 ## Conséquences
 
-- **`model_id` n’est pas modifiable sans redéploiement** (ou rebuild / rollout de l’artefact qui embarque `agent_config.json`), puisqu’il n’y a pas de source distante de vérité en production pour ce pilote.
-- Les équipes doivent traiter `agent_config.json` comme la **source de vérité** pour le pilote et documenter tout changement de modèle dans le pipeline de release.
+- `model_id` n’est **pas** modifiable sans **redéploiement** (ou roll-out de l’artefact contenant `agent_config.json`).
 
 ## Évolution
 
-**Migration vers Firestore prévue en T3**, lorsque le périmètre multi-environnement ou la fréquence de changement de modèle justifiera la configuration à chaud et l’investissement opérationnel associé.
+Réintroduire un store dynamique (Firestore ou autre) se justifiera quand le **périmètre multi-environnement** ou la **fréquence de changement** de configuration imposera la configuration à chaud et l’investissement opérationnel associé.

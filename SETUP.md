@@ -1,7 +1,7 @@
 # SETUP.md — Guide de mise en service NovaPay Anomaly Agent
 
 **Projet :** kairosium-finance-anomaly-agent  
-**Spec :** DESIGN_SPEC_v2.md  
+**Spec :** DESIGN_SPEC.md  
 **Temps estimé :** 15–30 min selon l'environnement GCP
 
 ---
@@ -46,7 +46,7 @@ Obtenir une clé gratuite sur [aistudio.google.com/apikey](https://aistudio.goog
 GOOGLE_API_KEY=<votre_clé_API_Google_AI_Studio>
 GOOGLE_GENAI_USE_VERTEXAI=False
 BQ_DATASET_ID=agent_prod
-MODEL_ID=gemini-3-flash-preview
+MODEL_ID=gemini-2.5-flash
 ```
 
 > Avec ce mode, `make playground` fonctionne immédiatement.  
@@ -67,7 +67,6 @@ gcloud config set project VOTRE_PROJECT_ID
 gcloud services enable \
   bigquery.googleapis.com \
   monitoring.googleapis.com \
-  firestore.googleapis.com \
   aiplatform.googleapis.com \
   storage.googleapis.com
 ```
@@ -79,7 +78,7 @@ GOOGLE_CLOUD_PROJECT=mon-projet-gcp      # ex: novapay-prod-123456
 GOOGLE_CLOUD_LOCATION=europe-west1
 GOOGLE_GENAI_USE_VERTEXAI=True
 BQ_DATASET_ID=agent_prod
-MODEL_ID=gemini-3-flash-preview
+MODEL_ID=gemini-2.5-flash
 # GOOGLE_APPLICATION_CREDENTIALS=       # laisser vide si gcloud auth est utilisé
 ```
 

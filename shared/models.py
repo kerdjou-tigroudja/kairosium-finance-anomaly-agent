@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -66,7 +66,7 @@ class AuditReport(BaseModel):
     """Rapport d'audit écrit dans BigQuery table audit_reports."""
 
     report_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(tz=UTC))
     total_transactions: int
     normal_count: int
     suspect_count: int
@@ -75,11 +75,11 @@ class AuditReport(BaseModel):
 
 
 class AgentConfig(BaseModel):
-    """Configuration des agents — miroir du document Firestore config/agent_config."""
+    """Configuration des agents — chargée depuis config/agent_config.json (ADR-006)."""
 
     model_id: str = Field(
         ...,
-        description="Identifiant modèle Vertex AI Gemini API — obligatoire (Firestore ou agent_config.json).",
+        description="Identifiant modèle Vertex AI Gemini API — obligatoire (agent_config.json ou env MODEL_ID).",
     )
     model_id_overrides: dict = Field(
         default_factory=lambda: {"ingestion_agent": None, "scoring_agent": None}

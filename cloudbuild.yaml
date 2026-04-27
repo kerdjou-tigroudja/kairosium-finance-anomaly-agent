@@ -1,4 +1,4 @@
-# Cloud Build — tests pytest (Constitution §7.4 / ADR-005).
+# Cloud Build — tests pytest (ADR-005).
 # Configurer un trigger sur ce repo avec le répertoire de build = racine du dossier
 # kairosium-finance-anomaly-agent (ou ajuster `dir` ci-dessous en monorepo).
 options:
@@ -17,4 +17,4 @@ steps:
         curl -LsSf https://astral.sh/uv/install.sh | sh
         export PATH="$$HOME/.local/bin:$$PATH"
         uv sync --extra dev
-        uv run pytest tests/test_agent.py::test_accuracy_golden_set -v
+        uv run pytest tests/ -v

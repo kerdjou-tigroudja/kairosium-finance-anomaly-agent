@@ -1,4 +1,4 @@
-"""Chargeur de configuration — Firestore d'abord, fallback config/agent_config.json."""
+"""Chargeur de configuration — JSON uniquement (ADR-006)."""
 
 from __future__ import annotations
 
@@ -17,28 +17,10 @@ _CONFIG_PATH = Path(__file__).parent / "agent_config.json"
 
 @lru_cache(maxsize=1)
 def load_config() -> AgentConfig:
-    """Charge la config depuis Firestore si disponible, sinon depuis agent_config.json.
+    """Charge la config depuis config/agent_config.json.
 
-    Firestore : collection `config`, document `agent_config`.
-    Variables d'env requises pour Firestore : GOOGLE_CLOUD_PROJECT.
+    Overrides possibles via variables d'env MODEL_ID et BQ_DATASET_ID.
     """
-    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
-
-    if project_id:
-        try:
-            from google.cloud import firestore  # type: ignore
-
-            db = firestore.Client(project=project_id)
-            doc = db.collection("config").document("agent_config").get()
-            if doc.exists:
-                data = doc.to_dict()
-                logger.info("Config chargée depuis Firestore (project=%s)", project_id)
-                return AgentConfig(**data)
-        except Exception as exc:
-            logger.warning(
-                "Firestore indisponible (%s), fallback sur agent_config.json", exc
-            )
-
     with open(_CONFIG_PATH, encoding="utf-8") as f:
         data = json.load(f)
     logger.info("Config chargée depuis %s", _CONFIG_PATH)
