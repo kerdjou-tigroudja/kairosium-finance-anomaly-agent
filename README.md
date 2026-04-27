@@ -1,10 +1,25 @@
 # Kairosium — Finance Anomaly Agent (ADK)
 
-Pipeline multi-agents (NovaPay) : ingestion CSV, scoring, rapport d’audit, alertes.
+Pipeline multi-agents de détection d'anomalies financières — ingestion CSV, scoring déterministe, rapport d'audit BigQuery, alertes temps réel.
+
+**Statut :** Production · Accuracy 90 % · 20/20 tests · `gemini-2.5-flash` · Vertex AI Agent Engine `europe-west1`
+
+---
+
+## Documentation
+
+| Artifact | Description |
+|:--|:--|
+| [DESIGN_SPEC.md](DESIGN_SPEC.md) | Contrat technique : KPIs, périmètre, contraintes réglementaires (AI Act) |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Diagrammes Mermaid, flux détaillé, ADRs résumés |
+| [SETUP.md](SETUP.md) | Mise en service locale et production (15–30 min) |
+| [DEPLOY_AGENT_ENGINE.md](DEPLOY_AGENT_ENGINE.md) | Commandes déploiement Vertex AI, IAM, troubleshooting |
+
+---
 
 ## Problème métier résolu
 
-Une PME SaaS mobilisait 2 ETP par semaine pour la revue manuelle des flux de paiement, avec des fraudes non détectées. Ce pipeline remplace le processus manuel par une analyse déterministe et LLM asynchrone, générant un rapport d’audit et des alertes en temps réel.
+Une PME SaaS mobilisait 2 ETP par semaine pour la revue manuelle des flux de paiement, avec des fraudes non détectées. Ce pipeline remplace le processus manuel par une analyse déterministe et LLM asynchrone, générant un rapport d'audit et des alertes en temps réel.
 
 ## Architecture
 
@@ -40,6 +55,8 @@ flowchart LR
     ORCH -->|Agent Analytics Plugin| BQ2
 ```
 
+Flux détaillé, décisions ADR, structure des agents → [ARCHITECTURE.md](ARCHITECTURE.md)
+
 ## KPIs mesurés
 
 Comparaison des métriques entre exécution en **développement local** et en **production** (Agent Engine).
@@ -55,12 +72,28 @@ Comparaison des métriques entre exécution en **développement local** et en **
 | **Tokens / run** | — | N/A | ~16 000 (~0,05 USD) | ✅ |
 | **Modèle** | gemini-2.5-flash | gemini-2.0-flash | gemini-2.5-flash | ✅ |
 
-**Note :** Precision / Recall sur un jeu d’évaluation **fixe** (250 transactions, 23 marquées ALERTE) **conforme** aux règles déterministes du scorer. Le premier jeu d’exemples était incohérent avec ces règles ; il a été recalé avant d’en faire la baseline de référence.
+**Note :** Precision / Recall sur un jeu d'évaluation **fixe** (250 transactions, 23 marquées ALERTE) **conforme** aux règles déterministes du scorer. Le premier jeu d'exemples était incohérent avec ces règles ; il a été recalé avant d'en faire la baseline de référence.
+
+## Démarrage rapide
+
+```bash
+# 1. Dépendances
+uv sync
+cp .env.example .env   # remplir GOOGLE_API_KEY (dev local) ou configurer ADC (prod)
+
+# 2. Tests unitaires
+uv run pytest
+
+# 3. Playground interactif
+agents-cli playground
+```
+
+Guide complet (prérequis, modes dev/prod, BigQuery, GCP) → [SETUP.md](SETUP.md)
 
 ## Modèle LLM
 
-- **Production :** `gemini-2.5-flash` (Vertex AI Gemini API), configuré via `config/agent_config.json` et surcharge possible par la variable d’environnement `MODEL_ID`.
-- **Migration :** passage **`gemini-2.0-flash` → `gemini-2.5-flash`** aligné sur l’arrêt annoncé de **Gemini 2.0 Flash** (**1er juin 2026**). Ne pas réintroduire `gemini-2.0-flash` dans la config de production après cette date.
+- **Production :** `gemini-2.5-flash` (Vertex AI Gemini API), configuré via `config/agent_config.json` et surcharge possible par la variable d'environnement `MODEL_ID`.
+- **Migration :** passage **`gemini-2.0-flash` → `gemini-2.5-flash`** aligné sur l'arrêt annoncé de **Gemini 2.0 Flash** (**1er juin 2026**). Ne pas réintroduire `gemini-2.0-flash` dans la config de production après cette date.
 - **Authentification :** **Vertex AI avec ADC** (`gcloud auth application-default login`, `GOOGLE_GENAI_USE_VERTEXAI=true`) — **pas** de clé API Google AI Studio en mode production.
 
 ## Déploiement production
@@ -82,7 +115,7 @@ uv run adk deploy agent_engine "$(pwd)" \
 
 (Remplacez `--project` / `--display_name` selon votre environnement.)
 
-**Suppression d’un Reasoning Engine :**
+**Suppression d'un Reasoning Engine :**
 
 ```bash
 uv run python scripts/delete_reasoning_engine.py \
@@ -91,9 +124,9 @@ uv run python scripts/delete_reasoning_engine.py \
 
 ## Cost tracking
 
-**Pipeline observé en production :** labels Vertex AI (`GenerateContentConfig.labels`, via `shared/vertex_billing_labels.py`) → agrégation consommation depuis **`agent_events`** (plugin BigQuery Agent Analytics) → table matérialisée **`cost_tracking`** via la requête [`infra/cost_tracking.sql`](infra/cost_tracking.sql). **Fallback :** la vue **`v_llm_response`** n’était pas disponible telle quelle en prod ; le chemin retenu s’appuie sur les événements / agrégations documentés dans le SQL (voir commentaires `agent_events` dans le même fichier).
+**Pipeline observé en production :** labels Vertex AI (`GenerateContentConfig.labels`, via `shared/vertex_billing_labels.py`) → agrégation consommation depuis **`agent_events`** (plugin BigQuery Agent Analytics) → table matérialisée **`cost_tracking`** via la requête [`infra/cost_tracking.sql`](infra/cost_tracking.sql). **Fallback :** la vue **`v_llm_response`** n'était pas disponible telle quelle en prod ; le chemin retenu s'appuie sur les événements / agrégations documentés dans le SQL (voir commentaires `agent_events` dans le même fichier).
 
-**Mesure (jeu d’évaluation, run de référence) :** ~**16 000** tokens, **< 0,05 USD** (ordre de grandeur cohérent avec l’estimation documentée dans `cost_tracking.sql`).
+**Mesure (jeu d'évaluation, run de référence) :** ~**16 000** tokens, **< 0,05 USD** (ordre de grandeur cohérent avec l'estimation documentée dans `cost_tracking.sql`).
 
 **Exemple de requête (adapter `PROJECT` / dataset) :**
 
@@ -104,17 +137,17 @@ ORDER BY window_start DESC
 LIMIT 10;
 ```
 
-Si la table a été créée avec le script versionné `infra/cost_tracking.sql`, les colonnes incluent notamment **`run_date`** (agrégat par jour) et il n’y a pas de colonne `window_start` : utiliser par exemple `ORDER BY run_date DESC`.
+Si la table a été créée avec le script versionné `infra/cost_tracking.sql`, les colonnes incluent notamment **`run_date`** (agrégat par jour) et il n'y a pas de colonne `window_start` : utiliser par exemple `ORDER BY run_date DESC`.
 
 ## Alertes Slack
 
-Notifications **Slack** via **webhook HTTP** directement dans l’outil **`trigger_alert`** (`orchestrator/tools/alert.py`, variable `SLACK_WEBHOOK_URL`) — **pas** d’intégration Slack nativement pilotée par Cloud Monitoring pour ce flux (les politiques Monitoring restent sur les métriques `anomaly_alert` / latences).
+Notifications **Slack** via **webhook HTTP** directement dans l'outil **`trigger_alert`** (`orchestrator/tools/alert.py`, variable `SLACK_WEBHOOK_URL`) — **pas** d'intégration Slack nativement pilotée par Cloud Monitoring pour ce flux (les politiques Monitoring restent sur les métriques `anomaly_alert` / latences).
 
-## Décisions d’architecture (ADRs)
+## Décisions d'architecture (ADRs)
 
 | ADR | Sujet | Fichier |
 |:--|:--|:--|
-| **ADR-005** | CI Cloud Build (niveau d’automatisation) | [`docs/adr/ADR-005.md`](docs/adr/ADR-005.md) |
+| **ADR-005** | CI Cloud Build (niveau d'automatisation) | [`docs/adr/ADR-005.md`](docs/adr/ADR-005.md) |
 | **ADR-006** | Firestore exclu (config versionnée) | [`docs/adr/ADR-006-firestore-exclusion.md`](docs/adr/ADR-006-firestore-exclusion.md) |
 | **ADR-007** | Agent Engine (`europe-west1`) vs Cloud Run | [`docs/adr/ADR-007-agent-engine-vs-cloud-run.md`](docs/adr/ADR-007-agent-engine-vs-cloud-run.md) |
 | **ADR-008** | MCP exclu (tools GCP natifs) | [`docs/adr/ADR-008-mcp-exclu.md`](docs/adr/ADR-008-mcp-exclu.md) |
@@ -125,4 +158,4 @@ Notifications **Slack** via **webhook HTTP** directement dans l’outil **`trigg
 
 ## CI (Cloud Build)
 
-Fichier [`cloudbuild.yaml`](cloudbuild.yaml) : exécution de la suite ciblant la non-régression sur le jeu d’évaluation d’accuracy (`pytest tests/test_agent.py::test_accuracy_golden_set`). Détails dans **ADR-005**. Pour activer la CI bloquante sur le projet GCP, configurer un trigger `gcloud builds` pointant sur ce dépôt.
+Fichier [`cloudbuild.yaml`](cloudbuild.yaml) : exécution de la suite ciblant la non-régression sur le jeu d'évaluation d'accuracy (`pytest tests/test_agent.py::test_accuracy_golden_set`). Détails dans **ADR-005**. Pour activer la CI bloquante sur le projet GCP, configurer un trigger `gcloud builds` pointant sur ce dépôt.
